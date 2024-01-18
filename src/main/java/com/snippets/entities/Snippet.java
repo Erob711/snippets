@@ -1,4 +1,4 @@
-package com.snippets.snippets.entities;
+package com.snippets.entities;
 
 
 import jakarta.persistence.*;
@@ -14,7 +14,7 @@ public class Snippet {
 
     @Id
     @GeneratedValue
-    private String Id;
+    private Long id;
 
     @Column
     private String language;
