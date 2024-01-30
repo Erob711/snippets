@@ -47,6 +47,7 @@ public class SnippetController {
         this.snippetService = snippetService;
     }
 
+    @PermitAll
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/snippets")
     public ResponseEntity<Snippet[]> getAll() throws IOException {
@@ -57,13 +58,14 @@ public class SnippetController {
         //object mapper to convert JSON data to Java object
         ObjectMapper mapper = new ObjectMapper();
         Snippet[] snippets = mapper.readValue(snippetResource, Snippet[].class);
-//        TextEncryptor encryptor = Encryptors.text(encryptionPass, encryptionSalt);
+        TextEncryptor encryptor = Encryptors.text(encryptionPass, encryptionSalt);
 
+        //these lines were throwing errors earlier because it was trying to de-crypt non-encrypted data from the old seed data
 
-//        for (int i = 0; i < snippets.length; i++) {
-//            String decryptedCode = encryptor.decrypt(snippets[i].getCode());
-//            snippets[i].setCode(decryptedCode);
-//        }
+        for (int i = 0; i < snippets.length; i++) {
+            String decryptedCode = encryptor.decrypt(snippets[i].getCode());
+            snippets[i].setCode(decryptedCode);
+        }
 
         return new ResponseEntity<>(snippets, HttpStatus.OK);
         //JpaRespository implementation: for when linked to "real" db
