@@ -53,6 +53,8 @@ public class SnippetController {
 
         File snippetResource = resourceLoader.getResource("classpath:seedData.json").getFile();
         System.out.print("snippet resource: " + snippetResource);
+
+        //object mapper to convert JSON data to Java object
         ObjectMapper mapper = new ObjectMapper();
         Snippet[] snippets = mapper.readValue(snippetResource, Snippet[].class);
 //        TextEncryptor encryptor = Encryptors.text(encryptionPass, encryptionSalt);
