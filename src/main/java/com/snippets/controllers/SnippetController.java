@@ -1,6 +1,7 @@
 package com.snippets.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.snippets.dtos.SnippetDto;
 import com.snippets.entities.Snippet;
 import com.snippets.services.SnippetService;
@@ -18,7 +19,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @PermitAll
@@ -52,8 +56,8 @@ public class SnippetController {
         ObjectMapper mapper = new ObjectMapper();
         Snippet[] snippets = mapper.readValue(snippetResource, Snippet[].class);
 //        TextEncryptor encryptor = Encryptors.text(encryptionPass, encryptionSalt);
-//
-//
+
+
 //        for (int i = 0; i < snippets.length; i++) {
 //            String decryptedCode = encryptor.decrypt(snippets[i].getCode());
 //            snippets[i].setCode(decryptedCode);
@@ -67,21 +71,49 @@ public class SnippetController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/snippets/{id}")
-    public ResponseEntity<SnippetDto> getById(@PathVariable Long id) {
-        if (id.equals(0)) throw new IllegalArgumentException("Item id cannot be zero");
-        Snippet snippet = snippetService.findById(id);
-        SnippetDto snippetResponse = modelMapper.map(snippet, SnippetDto.class);
-        return ResponseEntity.ok().body(snippetResponse);
+    public ResponseEntity<?> getById(@PathVariable Long id) throws IOException {
+        //for "real db" usage
+//        if (id.equals(0)) throw new IllegalArgumentException("Item id cannot be zero");
+//        Snippet snippet = snippetService.findById(id);
+//        SnippetDto snippetResponse = modelMapper.map(snippet, SnippetDto.class);
+
+        File snippetResource = resourceLoader.getResource("classpath:seedData.json").getFile();
+        ObjectMapper mapper = new ObjectMapper();
+        Snippet[] snippet = Arrays.stream(mapper.readValue(snippetResource,Snippet[].class)).filter(c -> Objects.equals(c.getId(), id)).toArray(Snippet[]::new);
+
+
+//        TextEncryptor encryptor = Encryptors.text(encryptionPass, encryptionSalt);
+
+        if (snippet.length == 0) {
+            return new ResponseEntity<>("Snippet not found", HttpStatus.NOT_FOUND);
+        }
+//        String decryptedSnippet = encryptor.decrypt(snippet[0].getCode());
+//        snippet[0].setCode(decryptedSnippet);
+        return ResponseEntity.ok().body(snippet[0]);
     }
 
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/snippets")
-    public ResponseEntity<SnippetDto> createSnippet(@Valid @RequestBody SnippetDto snippetDto) {
-        Snippet snippetRequest = modelMapper.map(snippetDto, Snippet.class);
-        Snippet snippet = snippetService.saveSnippet(snippetRequest);
-        SnippetDto snippetResponse = modelMapper.map(snippet, SnippetDto.class);
+    public ResponseEntity<SnippetDto> createSnippet(@Valid @RequestBody SnippetDto snippetDto) throws IOException {
 
-        return new ResponseEntity<SnippetDto>(snippetResponse, HttpStatus.CREATED);
+        //for "real db" implementation
+//        Snippet snippetRequest = modelMapper.map(snippetDto, Snippet.class);
+//        Snippet snippet = snippetService.saveSnippet(snippetRequest);
+//        SnippetDto snippetResponse = modelMapper.map(snippet, SnippetDto.class);
+
+        File snippetResource = resourceLoader.getResource("classpath:seedData.json").getFile();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        Snippet[] snippets = mapper.readValue(snippetResource, Snippet[].class);
+        TextEncryptor encryptor = Encryptors.text(encryptionPass, encryptionSalt);
+
+        List<Snippet> snippetList = new ArrayList<Snippet>(Arrays.asList(snippets));
+        Snippet snippetToAdd = new Snippet(snippets[snippets.length - 1].getId() + 1, snippetDto.getLanguage(), encryptor.encrypt(snippetDto.getCode()));
+        snippetList.add(snippetToAdd);
+
+        mapper.writeValue(resourceLoader.getResource("classpath:seedData.json").getFile(), snippetList);
+
+        return new ResponseEntity<SnippetDto>(HttpStatus.CREATED);
     }
 }
