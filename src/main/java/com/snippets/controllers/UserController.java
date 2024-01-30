@@ -28,10 +28,10 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<String> registerUser(@RequestBody UserDTO userData) {
-        if (userDetailsService.userExists(userData.getEmail())) {
+        if (userDetailsService.userExists(userData.getUsername())) {
             return new ResponseEntity<>("Already registered", HttpStatus.CONFLICT);
         }
-        UserDetails newUser = User.builder().username(userData.getEmail()).password(passwordEncoder.encode(userData.getPassword())).roles("USER")
+        UserDetails newUser = User.builder().username(userData.getUsername()).password(passwordEncoder.encode(userData.getPassword())).roles("USER")
                 .build();
         userDetailsService.createUser(newUser);
         return new ResponseEntity<String>(newUser.getUsername(), HttpStatus.OK);

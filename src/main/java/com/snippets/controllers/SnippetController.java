@@ -84,13 +84,13 @@ public class SnippetController {
         Snippet[] snippet = Arrays.stream(mapper.readValue(snippetResource,Snippet[].class)).filter(c -> Objects.equals(c.getId(), id)).toArray(Snippet[]::new);
 
 
-//        TextEncryptor encryptor = Encryptors.text(encryptionPass, encryptionSalt);
+        TextEncryptor encryptor = Encryptors.text(encryptionPass, encryptionSalt);
 
         if (snippet.length == 0) {
             return new ResponseEntity<>("Snippet not found", HttpStatus.NOT_FOUND);
         }
-//        String decryptedSnippet = encryptor.decrypt(snippet[0].getCode());
-//        snippet[0].setCode(decryptedSnippet);
+        String decryptedSnippet = encryptor.decrypt(snippet[0].getCode());
+        snippet[0].setCode(decryptedSnippet);
         return ResponseEntity.ok().body(snippet[0]);
     }
 

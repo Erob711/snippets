@@ -27,7 +27,8 @@ public class SpringSecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
+        http
+                .csrf().disable()
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/snippets", "/snippets/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").permitAll()
@@ -42,7 +43,7 @@ public class SpringSecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
 
-        UserDetails eric = User.builder().username("eric@eric.com").password(passwordEncoder().encode("eric")).roles("USER")
+        UserDetails eric = User.builder().username("ka@kat.com").password(passwordEncoder().encode("kat")).roles("USER")
                 .build();
 
         return new InMemoryUserDetailsManager(eric);
