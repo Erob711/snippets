@@ -1,7 +1,8 @@
 package com.snippets.controllers;
 
-import com.snippets.dtos.UserDTO;
-import jakarta.servlet.http.HttpServletRequest;
+import com.snippets.payload.AuthResponse;
+import com.snippets.payload.UserDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,20 +11,32 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.bind.annotation.*;
+import com.snippets.util.JwtTokenUtil;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
+    @Autowired
+    JwtTokenUtil jwtTokenUtil;
     private final InMemoryUserDetailsManager userDetailsService;
     private final PasswordEncoder passwordEncoder;
-    public UserController(ApplicationContext context) {
+    public UserController(ApplicationContext context, JwtTokenUtil util) {
         this.userDetailsService = (InMemoryUserDetailsManager) context.getBean("userDetailsService");
         this.passwordEncoder = (PasswordEncoder) context.getBean("passwordEncoder");
     }
     @GetMapping
-    public ResponseEntity<String> loginUser(HttpServletRequest request) {
-        return new ResponseEntity<>((String) request.getAttribute("username"), HttpStatus.OK);
+    public ResponseEntity<?> loginUser(@RequestBody UserDTO userData) {
+        if (!userDetailsService.userExists(userData.getUsername())) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+        UserDetails user = userDetailsService.loadUserByUsername(userData.getUsername());
+        if (!passwordEncoder.matches(userData.getPassword(), user.getPassword())) {
+            return new ResponseEntity<>("Incorrect Password", HttpStatus.UNAUTHORIZED);
+        }
+        String accessToken = jwtTokenUtil.generateAccessToken(userDetailsService.loadUserByUsername(userData.getUsername()));
+        AuthResponse response = new AuthResponse(userData.getUsername(), accessToken);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping

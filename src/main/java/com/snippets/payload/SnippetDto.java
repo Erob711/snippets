@@ -1,4 +1,4 @@
-package com.snippets.dtos;
+package com.snippets.payload;
 
 import lombok.Data;
 
