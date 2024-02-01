@@ -34,6 +34,7 @@ public class UserController {
         if (!passwordEncoder.matches(userData.getPassword(), user.getPassword())) {
             return new ResponseEntity<>("Incorrect Password", HttpStatus.UNAUTHORIZED);
         }
+        //this line below throws an error without the dependency: javax.xml.bind:jaxb-api:2.3.0
         String accessToken = jwtTokenUtil.generateAccessToken(userDetailsService.loadUserByUsername(userData.getUsername()));
         AuthResponse response = new AuthResponse(userData.getUsername(), accessToken);
         return new ResponseEntity<>(response, HttpStatus.OK);

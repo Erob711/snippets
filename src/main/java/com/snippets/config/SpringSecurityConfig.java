@@ -50,7 +50,7 @@ public class SpringSecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
 
-        UserDetails kat = User.builder().username("kat@kat.com").password(passwordEncoder().encode("kat")).roles("USER")
+        UserDetails kat = User.builder().username("test@test.com").password(passwordEncoder().encode("test")).roles("USER")
                 .build();
 
         return new InMemoryUserDetailsManager(kat);
